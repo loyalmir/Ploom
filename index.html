@@ -397,17 +397,17 @@ padding: 2px 8px; border-radius: 3px; margin-right: 4px;
 <div class="step-card" id="s2">
   <div class="step-header" onclick="toggle('s2')">
     <div class="step-num num-blue">②</div>
-    <div class="step-info"><div class="step-name">점주 직접 만났을 때</div><div class="step-desc">인사 → 재고 확인 → 리스피 안내 → 물품 확인</div></div>
+    <div class="step-info"><div class="step-name">점주 직접 만났을 때</div><div class="step-desc">인사 → 재고 확인 → 물품 확인 → 리스피 안내</div></div>
     <div class="step-arrow">▼</div>
   </div>
   <div class="step-body">
     <div class="script"><span class="script-label lbl-blue">🗣 인사</span>"내일 인근에서 홍보 및 세일즈 진행하려고 하는데 이곳이 시작점이라 점주님께 인사드리러 왔습니다."</div>
     <div class="script" style="margin-top:8px;"><span class="script-label lbl-blue">🗣 재고 확인 요청</span>"홍보 및 세일즈 중에 저희 제품에 관심있으신 분들 계시면 이 곳 점포랑 연결시켜서 안내드릴 예정이기도 하고요. 혹시 저희 제품 재고가 어떻게 되는지 알 수 있을까요?"</div>
-    <div class="rispi-box">
-    <div class="script" style="margin-top:8px;"><span class="script-label lbl-blue">🗣 물품 세팅 확인</span>"넵 확인했습니다. 내일 이곳에 저희가 가져오는 물품이 있는데 점포 앞에서 확인만 하고 바로 이동할까 하는데 괜찮으실까요?"</div>
-          <div class="rispi-title">💳 리스피 안내 (점포 점주에게만)</div>
-      <p>"참고로 점주님께는 3만원 상당의 리스피 쿠폰을 드리고 있어요.<br>카카오 메시지로 발송되고요, 1달 이내에 메시지 오실 거예요.<br>메시지 오시면 본인인증 후 발급 가능하세요."</p>
     <div class="script" style="margin-top:8px;"><span class="script-label lbl-blue">🗣 마무리</span>"넵 감사합니다. 그럼 내일 뵙겠습니다."</div>
+      <div class="rispi-title">💳 리스피 안내 (점포 점주에게만)</div>
+      <p>"참고로 점주님께는 3만원 상당의 리스피 쿠폰을 드리고 있어요.<br>카카오 메시지로 발송되고요, 1달 이내에 메시지 오실 거예요.<br>메시지 오시면 본인인증 후 발급 가능하세요."</p>
+    </div>
+    <div class="script" style="margin-top:8px;"><span class="script-label lbl-blue">🗣 물품 세팅 확인</span>"넵 확인했습니다. 내일 이곳에 저희가 가져오는 물품이 있는데 점포 앞에서 확인만 하고 바로 이동할까 하는데 괜찮으실까요?"</div>
   </div>
 </div>
 
@@ -524,10 +524,8 @@ padding: 2px 8px; border-radius: 3px; margin-right: 4px;
   <div class="step-body">
     <div class="script"><span class="script-label lbl-blue">🗣 인사</span>"내일 인근에서 홍보 및 세일즈 진행하려고 하는데 이곳이 시작점이라 점주님께 인사드리러 왔습니다."</div>
     <div class="script" style="margin-top:8px;"><span class="script-label lbl-blue">🗣 재고 확인 요청</span>"홍보 및 세일즈 중에 저희 제품에 관심있으신 분들 계시면 이 곳 점포랑 연결시켜서 안내드릴 예정이기도 하고요. 혹시 저희 제품 재고가 어떻게 되는지 알 수 있을까요?"</div>
-  </div>
     <div class="script" style="margin-top:8px;"><span class="script-label lbl-blue">🗣 물품 세팅 확인</span>"넵 확인했습니다. 내일 이곳에 저희가 가져오는 물품이 있는데 점포 앞에서 확인만 하고 바로 이동할까 하는데 괜찮으실까요?"</div>
-  </div> 
-  <div class="script" style="margin-top:8px;"><span class="script-label lbl-blue">🗣 마무리</span>"넵 감사합니다. 그럼 내일 뵙겠습니다."</div>
+    <div class="script" style="margin-top:8px;"><span class="script-label lbl-blue">🗣 마무리</span>"넵 감사합니다. 그럼 내일 뵙겠습니다."</div>
   </div>
 </div>
 
@@ -628,6 +626,20 @@ padding: 2px 8px; border-radius: 3px; margin-right: 4px;
 <div class="step-card" id="e3">
   <div class="step-header" onclick="toggle('e3')">
     <div class="step-num num-green">③</div>
+    <div class="step-info"><div class="step-name">리스피 안내</div><div class="step-desc">마무리 인사 전 점주에게</div></div>
+    <div class="step-arrow">▼</div>
+  </div>
+  <div class="step-body">
+    <div class="rispi-box">
+      <div class="rispi-title">💳 리스피 안내 (점주에게만)</div>
+      <p>"참고로 점주님께는 3만원 상당의 리스피 쿠폰을 드리고 있어요.<br>카카오 메시지로 발송되고요, 1달 이내에 메시지 오실 거예요.<br>메시지 오시면 본인인증 후 발급 가능하세요."</p>
+    </div>
+  </div>
+</div>
+
+<div class="step-card" id="e4b">
+  <div class="step-header" onclick="toggle('e4b')">
+    <div class="step-num num-blue">④</div>
     <div class="step-info"><div class="step-name">마무리 인사 후 이동</div><div class="step-desc">점주에게 인사하고 이동</div></div>
     <div class="step-arrow">▼</div>
   </div>
