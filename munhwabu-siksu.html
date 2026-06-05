@@ -126,7 +126,7 @@
     transition: 
       background-color 0.15s,
       border-color 0.15s,
-      transform0.15;
+      transform 0.15;
     color: transparent;
   }
   .check-btn.checked {
@@ -140,9 +140,9 @@
   .action-cell {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 4px;
-    padding-right: 8px;
+    padding-right: 4px;
 
     width: 90px;
     min-width: 90px;
@@ -172,7 +172,7 @@
   .delete-btn:hover { 
     background: #e09090; }
   tr:hover .delete-btn { 
-    display: 1;
+    opacity: 1;
     visibility: visible; }
 
 .intro-add-btn {
@@ -204,7 +204,7 @@
 tr:not(.intro-row):hover .intro-add-btn {
   opacity: 1;
   visibility: visible;
-  
+}
   /* 소개 추가 인풋 (인라인) */
   .intro-input-row td {
     padding: 6px 8px 6px 28px;
