@@ -161,9 +161,6 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-
-    opacity: 0;
-    visibility: hidden;
     
     transition: 
       opacity 0.15,
@@ -171,7 +168,7 @@
   }
   .delete-btn:hover { 
     background: #e09090; }
-  tr:hover .delete-btn { 
+  { 
     opacity: 1;
     visibility: visible; }
 
@@ -186,9 +183,6 @@
   white-space: nowrap;
 
   display: inline-flex;
-
-  opacity: 0;
-  visibility: hidden;
  
   transition:
     opacity 0.15s,
@@ -201,7 +195,7 @@
   border-color: var(--accent);
   color: var(--accent);
 }
-tr:not(.intro-row):hover .intro-add-btn {
+{
   opacity: 1;
   visibility: visible;
 }
