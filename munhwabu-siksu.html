@@ -136,7 +136,7 @@
   }
   .check-btn:active { transform: scale(0.92); }
 
-  /* 액션 셀 - 삭제 + 소개추가 버튼 */
+  /* 액션 셀 - 삭제 + 열매추가 버튼 */
   .action-cell {
     display: flex;
     align-items: center;
@@ -199,7 +199,7 @@
   opacity: 1;
   visibility: visible;
 }
-  /* 소개 추가 인풋 (인라인) */
+  /* 열매 추가 인풋 (인라인) */
   .intro-input-row td {
     padding: 6px 8px 6px 28px;
     background: #f8f4ec;
@@ -400,7 +400,7 @@ function render() {
   updateSummary();
 }
 
-// 소개 추가 인풋이 열려있는 idx 추적
+// 열매 추가 인풋이 열려있는 idx 추적
 let introOpenState = { male: -1, female: -1 };
 
 function renderGroup(group, tbodyId) {
@@ -433,11 +433,11 @@ function renderGroup(group, tbodyId) {
     const actDiv = document.createElement('div');
     actDiv.className = 'action-cell';
 
-    // 소개로 추가 버튼 (소개행 아닌 경우만)
+    // 열매로 추가 버튼 (열매행 아닌 경우만)
     if (!person.intro) {
       const introBtn = document.createElement('button');
       introBtn.className = 'intro-add-btn';
-      introBtn.textContent = '↳소개';
+      introBtn.textContent = '↳열매';
       introBtn.onclick = (e) => {
         e.stopPropagation();
         introOpenState[group] = idx;
@@ -457,7 +457,7 @@ function renderGroup(group, tbodyId) {
     tr.appendChild(actTd);
     tbody.appendChild(tr);
 
-    // 소개 추가 인풋 행 (해당 idx 바로 아래)
+    // 열매 추가 인풋 행 (해당 idx 바로 아래)
     if (!person.intro && introOpenState[group] === idx) {
       const inputTr = document.createElement('tr');
       inputTr.className = 'intro-input-row';
@@ -469,7 +469,7 @@ function renderGroup(group, tbodyId) {
 
       const inp = document.createElement('input');
       inp.type = 'text';
-      inp.placeholder = `${person.name}의 소개 이름`;
+      inp.placeholder = `${person.name}의 열매 이름`;
       inp.maxLength = 10;
       inp.autofocus = true;
 
