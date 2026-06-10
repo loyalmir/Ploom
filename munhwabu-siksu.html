@@ -148,6 +148,7 @@
   .summary-card .day-count { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
   .summary-card.male-card .day-count { color: #4a78a8; }
   .summary-card.female-card .day-count { color: #c86878; }
+  .summary-card.star-card .day-count { color: #c8a23a; }
 
   /* ===== 테이블 ===== */
   .table-section {
@@ -525,6 +526,7 @@
   <div class="summary-bar">
     <div class="summary-card male-card"><div class="day-label">형제</div><div class="day-count" id="sum-male">-</div></div>
     <div class="summary-card female-card"><div class="day-label">자매</div><div class="day-count" id="sum-female">-</div></div>
+    <div class="summary-card star-card"><div class="day-label">★</div><div class="day-count" id="sum-star">-</div></div>
     <div class="summary-card total"><div class="day-label">전체</div><div class="day-count" id="sum-total">-</div></div>
   </div>
 
@@ -794,7 +796,7 @@ function renderGroup(group, tbodyId) {
     } else {
       // 일반 표시 + 수정 아이콘
       const nameSpan = document.createElement('span');
-      nameSpan.textContent = person.intro ? `↳ ${person.name}` : person.name;
+      nameSpan.textContent = person.intro ? `★ ${person.name}` : person.name;
       nameTd.appendChild(nameSpan);
 
       const editBtn = document.createElement('button');
@@ -828,7 +830,8 @@ function renderGroup(group, tbodyId) {
     if (!person.intro) {
       const introBtn = document.createElement('button');
       introBtn.className = 'intro-add-btn';
-      introBtn.textContent = '↳초대';
+      introBtn.textContent = '+★';
+      introBtn.title = '★ 추가';
       introBtn.onclick = (e) => {
         e.stopPropagation();
         introOpenState[group] = idx;
@@ -859,7 +862,7 @@ function renderGroup(group, tbodyId) {
 
       const inp = document.createElement('input');
       inp.type = 'text';
-      inp.placeholder = `${person.name}의 초대 이름`;
+      inp.placeholder = `${person.name} ★ 이름 입력`;
       inp.maxLength = 10;
 
       const confirmBtn = document.createElement('button');
@@ -904,14 +907,28 @@ function toggleCheck(group, idx) {
 
 function updateSummary() {
   const hostNames = getHostNames();
-  const visible = g => (data[g]||[]).filter(p => !isHidden(p, hostNames));
-  const m = visible('male').filter(p => p.checked).length;
-  const f = visible('female').filter(p => p.checked).length;
+  const vis = g => (data[g]||[]).filter(p => !isHidden(p, hostNames));
+
+  const mMembers = vis('male').filter(p => !p.intro);
+  const fMembers = vis('female').filter(p => !p.intro);
+  const mStars = vis('male').filter(p => p.intro);
+  const fStars = vis('female').filter(p => p.intro);
+
+  const m = mMembers.filter(p => p.checked).length;
+  const f = fMembers.filter(p => p.checked).length;
+  const sM = mStars.filter(p => p.checked).length;
+  const sF = fStars.filter(p => p.checked).length;
+  const s = sM + sF;
+
   document.getElementById('sum-male').textContent = m;
   document.getElementById('sum-female').textContent = f;
-  document.getElementById('sum-total').textContent = m + f;
-  document.getElementById('badge-male').textContent = `${m} / ${visible('male').length}명`;
-  document.getElementById('badge-female').textContent = `${f} / ${visible('female').length}명`;
+  document.getElementById('sum-star').textContent = s;
+  document.getElementById('sum-total').textContent = m + f + s;
+
+  document.getElementById('badge-male').textContent =
+    `${m} / ${mMembers.length}명` + (sM ? ` +★${sM}` : '');
+  document.getElementById('badge-female').textContent =
+    `${f} / ${fMembers.length}명` + (sF ? ` +★${sF}` : '');
 }
 
 /* ===== 주최자 탭 렌더 (탭해서 선택) ===== */
