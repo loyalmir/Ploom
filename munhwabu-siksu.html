@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>문화부 집회 주간 식수 인원 파악</title>
+<title>팀별교제 식수인원 조사</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
 
@@ -28,17 +28,61 @@
     min-height: 100vh;
     padding: 24px 16px 60px;
     color: var(--text);
+    max-width: 560px;
+    margin: 0 auto;
   }
 
-  h1 {
+  /* ===== 날짜 (수정 가능) ===== */
+  .date-wrap {
     text-align: center;
+    margin-bottom: 6px;
+  }
+  #dateDisplay {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-size: 1.25rem;
     font-weight: 700;
     letter-spacing: -0.02em;
-    margin-bottom: 20px;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 8px;
+    border: 1.5px dashed transparent;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  #dateDisplay:hover {
+    border-color: var(--border);
+    background: var(--surface);
+  }
+  #dateDisplay .edit-icon {
+    font-size: 0.85rem;
+    color: var(--text-sub);
+    opacity: 0.7;
+  }
+  #dateInput {
+    display: none;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+    padding: 7px 12px;
+    border: 1.5px solid var(--accent);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-align: center;
+    background: var(--surface);
     color: var(--text);
+    outline: none;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-sub);
+    margin-bottom: 20px;
   }
 
+  /* ===== 요약 ===== */
   .summary-bar {
     display: flex;
     gap: 8px;
@@ -50,13 +94,17 @@
     background: var(--surface);
     border: 1.5px solid var(--border);
     border-radius: 10px;
-    padding: 8px 16px;
+    padding: 8px 20px;
     text-align: center;
-    min-width: 60px;
+    min-width: 84px;
   }
+  .summary-card.total { border-color: var(--accent); }
   .summary-card .day-label { font-size: 0.7rem; color: var(--text-sub); margin-bottom: 2px; }
   .summary-card .day-count { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
+  .summary-card.male-card .day-count { color: #4a78a8; }
+  .summary-card.female-card .day-count { color: #c86878; }
 
+  /* ===== 테이블 ===== */
   .table-section {
     background: var(--surface);
     border-radius: 14px;
@@ -72,9 +120,19 @@
     font-weight: 700;
     letter-spacing: 0.05em;
     color: var(--text-sub);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
   .section-header.male { background: var(--male-header); }
   .section-header.female { background: var(--female-header); }
+  .section-header .count-badge {
+    font-size: 0.78rem;
+    font-weight: 700;
+    background: rgba(255,255,255,0.6);
+    border-radius: 20px;
+    padding: 2px 10px;
+  }
 
   table { width: 100%; border-collapse: collapse; }
 
@@ -86,7 +144,9 @@
     border-bottom: 1.5px solid var(--border);
     text-align: center;
   }
-  thead th.name-col { text-align: left; padding-left: 14px; width: 100px; }
+  thead th.name-col { text-align: left; padding-left: 14px; }
+  thead th.check-col { width: 80px; }
+  thead th.act-col { width: 100px; }
 
   tbody tr {
     border-bottom: 1px solid #ede6d6;
@@ -113,20 +173,17 @@
   }
 
   .check-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
     border: 1.5px solid var(--border);
     background: transparent;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 1.1rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: 
-      background-color 0.15s,
-      border-color 0.15s,
-      transform 0.15;
+    transition: background-color 0.15s, border-color 0.15s, transform 0.15s;
     color: transparent;
   }
   .check-btn.checked {
@@ -136,16 +193,13 @@
   }
   .check-btn:active { transform: scale(0.92); }
 
-  /* 액션 셀 - 삭제 + 열매추가 버튼 */
+  /* ===== 액션 셀 ===== */
   .action-cell {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 4px;
     padding-right: 4px;
-
-    width: 90px;
-    min-width: 90px;
   }
   .delete-btn {
     width: 22px;
@@ -156,59 +210,38 @@
     color: #a03030;
     font-size: 0.75rem;
     cursor: pointer;
-    
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    
-    transition: 
-      opacity 0.15,
-      background 0.15;
+    transition: background 0.15s;
   }
-  .delete-btn:hover { 
-    background: #e09090; }
-  { 
-    opacity: 1;
-    visibility: visible; }
+  .delete-btn:hover { background: #e09090; }
 
-.intro-add-btn {
-  font-size: 0.68rem;
-  padding: 3px 6px;
-  border-radius: 6px;
-  border: 1px dashed var(--border);
-  background: none;
-  color: var(--text-sub);
-  cursor: pointer;
-  white-space: nowrap;
+  .intro-add-btn {
+    font-size: 0.68rem;
+    padding: 3px 6px;
+    border-radius: 6px;
+    border: 1px dashed var(--border);
+    background: none;
+    color: var(--text-sub);
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .intro-add-btn:hover {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
 
-  display: inline-flex;
- 
-  transition:
-    opacity 0.15s,
-    background 0.15s,
-    border-color 0.15s;
-
-}
-.intro-add-btn:hover {
-  background: var(--accent-light);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-{
-  opacity: 1;
-  visibility: visible;
-}
-  /* 열매 추가 인풋 (인라인) */
+  /* 열매 추가 인풋 */
   .intro-input-row td {
     padding: 6px 8px 6px 28px;
     background: #f8f4ec;
   }
-  .intro-input-wrap {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
+  .intro-input-wrap { display: flex; gap: 6px; align-items: center; }
   .intro-input-wrap input {
     flex: 1;
     padding: 5px 8px;
@@ -274,6 +307,21 @@
   }
   .add-row button:hover { background: #a85f25; }
 
+  /* ===== 체크 초기화 ===== */
+  .reset-wrap { text-align: center; margin-top: 8px; }
+  .reset-btn {
+    font-size: 0.75rem;
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text-sub);
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .reset-btn:hover { background: var(--surface); }
+
   #loading {
     text-align: center;
     padding: 40px;
@@ -282,7 +330,7 @@
   }
 
   @media (max-width: 480px) {
-    .check-btn { width: 28px; height: 28px; font-size: 0.9rem; }
+    .check-btn { width: 34px; height: 34px; font-size: 1rem; }
     td { padding: 8px 2px; }
     td.name-cell { padding-left: 10px; font-size: 0.78rem; }
   }
@@ -290,27 +338,32 @@
 </head>
 <body>
 
-<h1>문화부 집회 주간 식수 인원 파악</h1>
+<div class="date-wrap">
+  <span id="dateDisplay" title="탭해서 날짜 수정">
+    <span id="dateText">6월 14일 일요일</span>
+    <span class="edit-icon">✏️</span>
+  </span>
+  <input type="text" id="dateInput" maxlength="30">
+</div>
+<div class="subtitle">팀별교제 식수인원 조사</div>
 
 <div class="summary-bar">
-  <div class="summary-card"><div class="day-label">월</div><div class="day-count" id="sum-0">-</div></div>
-  <div class="summary-card"><div class="day-label">화</div><div class="day-count" id="sum-1">-</div></div>
-  <div class="summary-card"><div class="day-label">수</div><div class="day-count" id="sum-2">-</div></div>
-  <div class="summary-card"><div class="day-label">목</div><div class="day-count" id="sum-3">-</div></div>
-  <div class="summary-card"><div class="day-label">금</div><div class="day-count" id="sum-4">-</div></div>
+  <div class="summary-card male-card"><div class="day-label">형제</div><div class="day-count" id="sum-male">-</div></div>
+  <div class="summary-card female-card"><div class="day-label">자매</div><div class="day-count" id="sum-female">-</div></div>
+  <div class="summary-card total"><div class="day-label">전체</div><div class="day-count" id="sum-total">-</div></div>
 </div>
 
 <div id="loading">데이터 불러오는 중...</div>
 <div id="mainContent" style="display:none">
 
   <div class="table-section">
-    <div class="section-header male">👨 형제</div>
+    <div class="section-header male"><span>👨 형제</span><span class="count-badge" id="badge-male">-</span></div>
     <table>
       <thead>
         <tr>
           <th class="name-col">이름</th>
-          <th>월</th><th>화</th><th>수</th><th>목</th><th>금</th>
-          <th></th>
+          <th class="check-col">식수</th>
+          <th class="act-col"></th>
         </tr>
       </thead>
       <tbody id="maleBody"></tbody>
@@ -322,13 +375,13 @@
   </div>
 
   <div class="table-section">
-    <div class="section-header female">👩 자매</div>
+    <div class="section-header female"><span>👩 자매</span><span class="count-badge" id="badge-female">-</span></div>
     <table>
       <thead>
         <tr>
           <th class="name-col">이름</th>
-          <th>월</th><th>화</th><th>수</th><th>목</th><th>금</th>
-          <th></th>
+          <th class="check-col">식수</th>
+          <th class="act-col"></th>
         </tr>
       </thead>
       <tbody id="femaleBody"></tbody>
@@ -339,6 +392,10 @@
     </div>
   </div>
 
+  <div class="reset-wrap">
+    <button class="reset-btn" onclick="resetChecks()">✓ 체크 전체 초기화</button>
+  </div>
+
 </div>
 
 <script type="module">
@@ -347,10 +404,9 @@ import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/1
 
 const app = initializeApp({ databaseURL: "https://k-hary-default-rtdb.firebaseio.com/" });
 const db = getDatabase(app);
-const DB_PATH = "siksu/main";
-const DAYS = ['월','화','수','목','금'];
+const DB_PATH = "siksu/teamday";   // 주간 식수(siksu/main)와 분리된 별도 경로
 
-let data = { male: [], female: [] };
+let data = { date: "6월 14일 일요일", male: [], female: [] };
 
 const DEFAULT_MALE = [
   {name:'김동언',intro:false},{name:'이재열',intro:false},{name:'문정대',intro:false},
@@ -369,19 +425,21 @@ const DEFAULT_FEMALE = [
 ];
 
 function makePerson(name, intro=false) {
-  return { name, intro, days: [false,false,false,false,false] };
+  return { name, intro, checked: false };
 }
 
 async function loadData() {
   const snap = await get(ref(db, DB_PATH));
   if (snap.exists()) {
     data = snap.val();
-    // days 배열 보정 (혹시 null 있으면)
+    if (!data.date) data.date = "6월 14일 일요일";
     ['male','female'].forEach(g => {
-      (data[g]||[]).forEach(p => { if(!p.days) p.days=[false,false,false,false,false]; });
+      if (!data[g]) data[g] = [];
+      data[g].forEach(p => { if (typeof p.checked !== 'boolean') p.checked = false; });
     });
   } else {
     data = {
+      date: "6월 14일 일요일",
       male: DEFAULT_MALE.map(p => makePerson(p.name, p.intro)),
       female: DEFAULT_FEMALE.map(p => makePerson(p.name, p.intro))
     };
@@ -394,46 +452,76 @@ async function loadData() {
 
 function saveData() { set(ref(db, DB_PATH), data); }
 
+/* ===== 날짜 수정 ===== */
+const dateDisplay = document.getElementById('dateDisplay');
+const dateText = document.getElementById('dateText');
+const dateInput = document.getElementById('dateInput');
+
+dateDisplay.addEventListener('click', () => {
+  dateInput.value = data.date;
+  dateDisplay.style.display = 'none';
+  dateInput.style.display = 'block';
+  dateInput.focus();
+  dateInput.select();
+});
+
+function commitDate() {
+  const v = dateInput.value.trim();
+  if (v) {
+    data.date = v;
+    saveData();
+  }
+  dateInput.style.display = 'none';
+  dateDisplay.style.display = 'inline-flex';
+  renderDate();
+}
+dateInput.addEventListener('blur', commitDate);
+dateInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') dateInput.blur();
+  if (e.key === 'Escape') { dateInput.value = data.date; dateInput.blur(); }
+});
+
+function renderDate() {
+  dateText.textContent = data.date;
+  document.title = `${data.date} 팀별교제 식수인원 조사`;
+}
+
+/* ===== 렌더 ===== */
 function render() {
+  renderDate();
   renderGroup('male', 'maleBody');
   renderGroup('female', 'femaleBody');
   updateSummary();
 }
 
-// 열매 추가 인풋이 열려있는 idx 추적
 let introOpenState = { male: -1, female: -1 };
 
 function renderGroup(group, tbodyId) {
   const tbody = document.getElementById(tbodyId);
   tbody.innerHTML = '';
   (data[group]||[]).forEach((person, idx) => {
-    // 일반 행
     const tr = document.createElement('tr');
     if (person.intro) tr.classList.add('intro-row');
 
-    // 이름 셀
     const nameTd = document.createElement('td');
     nameTd.className = 'name-cell';
     nameTd.textContent = person.intro ? `↳ ${person.name}` : person.name;
     tr.appendChild(nameTd);
 
-    // 요일 체크
-    DAYS.forEach((_, di) => {
-      const td = document.createElement('td');
-      const btn = document.createElement('button');
-      btn.className = 'check-btn' + (person.days[di] ? ' checked' : '');
-      btn.textContent = person.days[di] ? '○' : '';
-      btn.onclick = () => { toggleDay(group, idx, di); };
-      td.appendChild(btn);
-      tr.appendChild(td);
-    });
+    // 식수 체크 (단일)
+    const td = document.createElement('td');
+    const btn = document.createElement('button');
+    btn.className = 'check-btn' + (person.checked ? ' checked' : '');
+    btn.textContent = person.checked ? '○' : '';
+    btn.onclick = () => { toggleCheck(group, idx); };
+    td.appendChild(btn);
+    tr.appendChild(td);
 
     // 액션 셀
     const actTd = document.createElement('td');
     const actDiv = document.createElement('div');
     actDiv.className = 'action-cell';
 
-    // 열매로 추가 버튼 (열매행 아닌 경우만)
     if (!person.intro) {
       const introBtn = document.createElement('button');
       introBtn.className = 'intro-add-btn';
@@ -446,7 +534,6 @@ function renderGroup(group, tbodyId) {
       actDiv.appendChild(introBtn);
     }
 
-    // 삭제 버튼
     const delBtn = document.createElement('button');
     delBtn.className = 'delete-btn';
     delBtn.textContent = '×';
@@ -457,12 +544,12 @@ function renderGroup(group, tbodyId) {
     tr.appendChild(actTd);
     tbody.appendChild(tr);
 
-    // 열매 추가 인풋 행 (해당 idx 바로 아래)
+    // 열매 추가 인풋 행
     if (!person.intro && introOpenState[group] === idx) {
       const inputTr = document.createElement('tr');
       inputTr.className = 'intro-input-row';
       const inputTd = document.createElement('td');
-      inputTd.colSpan = 7;
+      inputTd.colSpan = 3;
 
       const wrap = document.createElement('div');
       wrap.className = 'intro-input-wrap';
@@ -471,7 +558,6 @@ function renderGroup(group, tbodyId) {
       inp.type = 'text';
       inp.placeholder = `${person.name}의 열매 이름`;
       inp.maxLength = 10;
-      inp.autofocus = true;
 
       const confirmBtn = document.createElement('button');
       confirmBtn.className = 'intro-confirm-btn';
@@ -507,17 +593,20 @@ function renderGroup(group, tbodyId) {
   });
 }
 
-function toggleDay(group, idx, di) {
-  data[group][idx].days[di] = !data[group][idx].days[di];
+function toggleCheck(group, idx) {
+  data[group][idx].checked = !data[group][idx].checked;
   saveData();
   render();
 }
 
 function updateSummary() {
-  const all = [...(data.male||[]), ...(data.female||[])];
-  DAYS.forEach((_, di) => {
-    document.getElementById(`sum-${di}`).textContent = all.filter(p => p.days[di]).length;
-  });
+  const m = (data.male||[]).filter(p => p.checked).length;
+  const f = (data.female||[]).filter(p => p.checked).length;
+  document.getElementById('sum-male').textContent = m;
+  document.getElementById('sum-female').textContent = f;
+  document.getElementById('sum-total').textContent = m + f;
+  document.getElementById('badge-male').textContent = `${m} / ${(data.male||[]).length}명`;
+  document.getElementById('badge-female').textContent = `${f} / ${(data.female||[]).length}명`;
 }
 
 window.addPerson = function(group) {
@@ -535,6 +624,13 @@ window.deletePerson = function(group, idx) {
   const name = data[group][idx].name;
   if (!confirm(`"${name}" 을(를) 삭제할까요?`)) return;
   data[group].splice(idx, 1);
+  saveData();
+  render();
+};
+
+window.resetChecks = function() {
+  if (!confirm('모든 식수 체크를 초기화할까요?\n(이름 명단은 그대로 유지됩니다)')) return;
+  ['male','female'].forEach(g => (data[g]||[]).forEach(p => p.checked = false));
   saveData();
   render();
 };
