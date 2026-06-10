@@ -613,9 +613,8 @@ const DEFAULT_FEMALE = [
 ];
 
 const DEFAULT_HOSTS = {
-  "1": "", "2": "김동언, 박규리", "3": "이재열, 양은솔", "4": "고연희",
-  "5": "문정대, 하연서", "6": "백선우", "7": "박인국",
-  "8": "", "9": "", "10": "", "11": "", "12": ""
+  "1": "", "2": "", "3": "", "4": "", "5": "", "6": "",
+  "7": "", "8": "", "9": "", "10": "", "11": "", "12": ""
 };
 
 function makePerson(name, intro=false) {
@@ -628,6 +627,12 @@ async function loadData() {
     data = snap.val();
     if (!data.date) data.date = "6월 14일 일요일";
     if (!data.hosts) { data.hosts = {...DEFAULT_HOSTS}; saveData(); }
+    // 글자 입력 방식 때 저장된 주최자 명단 1회 초기화 (탭 선택 방식 전환)
+    if (!data.hostsCleared) {
+      data.hosts = {...DEFAULT_HOSTS};
+      data.hostsCleared = true;
+      saveData();
+    }
     ['male','female'].forEach(g => {
       if (!data[g]) data[g] = [];
       data[g].forEach(p => { if (typeof p.checked !== 'boolean') p.checked = false; });
@@ -637,7 +642,8 @@ async function loadData() {
       date: "6월 14일 일요일",
       male: DEFAULT_MALE.map(p => makePerson(p.name, p.intro)),
       female: DEFAULT_FEMALE.map(p => makePerson(p.name, p.intro)),
-      hosts: {...DEFAULT_HOSTS}
+      hosts: {...DEFAULT_HOSTS},
+      hostsCleared: true
     };
     await set(ref(db, DB_PATH), data);
   }
@@ -942,6 +948,23 @@ function renderHosts() {
 
     row.appendChild(label);
     row.appendChild(namesDiv);
+
+    // 선택된 주최자가 있으면 비우기 버튼 표시
+    if (selected.length) {
+      const clearBtn = document.createElement('button');
+      clearBtn.className = 'delete-btn';
+      clearBtn.textContent = '×';
+      clearBtn.title = '이 달 주최자 비우기';
+      clearBtn.onclick = (e) => {
+        e.stopPropagation();
+        data.hosts[key] = '';
+        saveData();
+        renderHosts();
+        render();
+      };
+      row.appendChild(clearBtn);
+    }
+
     row.appendChild(arrow);
     row.onclick = () => {
       hostOpenMonth = isOpen ? null : key;
