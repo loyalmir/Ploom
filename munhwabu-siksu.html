@@ -32,6 +32,36 @@
     margin: 0 auto;
   }
 
+  /* ===== 탭 ===== */
+  .tab-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 20px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 5px;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 9px 0;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-sub);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .tab-btn.active {
+    background: var(--accent);
+    color: white;
+  }
+  .tab-page { display: none; }
+  .tab-page.active { display: block; }
+
   /* ===== 날짜 (수정 가능) ===== */
   .date-wrap {
     text-align: center;
@@ -79,8 +109,23 @@
     text-align: center;
     font-size: 0.82rem;
     color: var(--text-sub);
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
+
+  /* ===== 주최자 안내 배너 ===== */
+  .host-banner {
+    display: none;
+    background: var(--accent-light);
+    border: 1.5px solid var(--accent);
+    border-radius: 10px;
+    padding: 9px 14px;
+    font-size: 0.8rem;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .host-banner strong { color: var(--accent); }
 
   /* ===== 요약 ===== */
   .summary-bar {
@@ -126,6 +171,7 @@
   }
   .section-header.male { background: var(--male-header); }
   .section-header.female { background: var(--female-header); }
+  .section-header.hosts { background: var(--accent-light); }
   .section-header .count-badge {
     font-size: 0.78rem;
     font-weight: 700;
@@ -236,7 +282,7 @@
     color: var(--accent);
   }
 
-  /* 열매 추가 인풋 */
+  /* 초대 추가 인풋 */
   .intro-input-row td {
     padding: 6px 8px 6px 28px;
     background: #f8f4ec;
@@ -322,6 +368,56 @@
   }
   .reset-btn:hover { background: var(--surface); }
 
+  /* ===== 주최자 탭 ===== */
+  .hosts-title {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .hosts-sub {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text-sub);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .host-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    border-bottom: 1px solid #ede6d6;
+  }
+  .host-row:last-child { border-bottom: none; }
+  .host-row.current-month {
+    background: var(--accent-light);
+  }
+  .host-month {
+    width: 44px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-sub);
+    flex-shrink: 0;
+    text-align: center;
+  }
+  .host-row.current-month .host-month { color: var(--accent); }
+  .host-input {
+    flex: 1;
+    padding: 7px 10px;
+    border: 1.5px solid transparent;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    background: transparent;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .host-input:hover { border-color: var(--border); background: white; }
+  .host-input:focus { border-color: var(--accent); background: white; }
+  .host-input::placeholder { color: #c0b496; }
+
   #loading {
     text-align: center;
     padding: 40px;
@@ -338,23 +434,32 @@
 </head>
 <body>
 
-<div class="date-wrap">
-  <span id="dateDisplay" title="탭해서 날짜 수정">
-    <span id="dateText">6월 14일 일요일</span>
-    <span class="edit-icon">✏️</span>
-  </span>
-  <input type="text" id="dateInput" maxlength="30">
-</div>
-<div class="subtitle">팀별교제 식수인원 조사</div>
-
-<div class="summary-bar">
-  <div class="summary-card male-card"><div class="day-label">형제</div><div class="day-count" id="sum-male">-</div></div>
-  <div class="summary-card female-card"><div class="day-label">자매</div><div class="day-count" id="sum-female">-</div></div>
-  <div class="summary-card total"><div class="day-label">전체</div><div class="day-count" id="sum-total">-</div></div>
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="checkTab">🍚 식수 체크</button>
+  <button class="tab-btn" data-tab="hostTab">📌 주최자</button>
 </div>
 
 <div id="loading">데이터 불러오는 중...</div>
-<div id="mainContent" style="display:none">
+
+<!-- ===== 탭 1 : 식수 체크 ===== -->
+<div id="checkTab" class="tab-page active" style="display:none">
+
+  <div class="date-wrap">
+    <span id="dateDisplay" title="탭해서 날짜 수정">
+      <span id="dateText">6월 14일 일요일</span>
+      <span class="edit-icon">✏️</span>
+    </span>
+    <input type="text" id="dateInput" maxlength="30">
+  </div>
+  <div class="subtitle">팀별교제 식수인원 조사</div>
+
+  <div class="host-banner" id="hostBanner"></div>
+
+  <div class="summary-bar">
+    <div class="summary-card male-card"><div class="day-label">형제</div><div class="day-count" id="sum-male">-</div></div>
+    <div class="summary-card female-card"><div class="day-label">자매</div><div class="day-count" id="sum-female">-</div></div>
+    <div class="summary-card total"><div class="day-label">전체</div><div class="day-count" id="sum-total">-</div></div>
+  </div>
 
   <div class="table-section">
     <div class="section-header male"><span>👨 형제</span><span class="count-badge" id="badge-male">-</span></div>
@@ -398,6 +503,22 @@
 
 </div>
 
+<!-- ===== 탭 2 : 주최자 ===== -->
+<div id="hostTab" class="tab-page" style="display:none">
+
+  <div class="hosts-title">2026년 팀별교제 주최 형제자매</div>
+  <div class="hosts-sub">
+    이름을 적으면 해당 달의 식수 명단에서 자동으로 제외됩니다.<br>
+    여러 명은 쉼표나 띄어쓰기로 구분해 주세요.
+  </div>
+
+  <div class="table-section">
+    <div class="section-header hosts"><span>📌 월별 주최자</span></div>
+    <div id="hostList"></div>
+  </div>
+
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -406,7 +527,7 @@ const app = initializeApp({ databaseURL: "https://k-hary-default-rtdb.firebaseio
 const db = getDatabase(app);
 const DB_PATH = "siksu/teamday";   // 주간 식수(siksu/main)와 분리된 별도 경로
 
-let data = { date: "6월 14일 일요일", male: [], female: [] };
+let data = { date: "6월 14일 일요일", male: [], female: [], hosts: {} };
 
 const DEFAULT_MALE = [
   {name:'김동언',intro:false},{name:'이재열',intro:false},{name:'문정대',intro:false},
@@ -424,6 +545,12 @@ const DEFAULT_FEMALE = [
   {name:'이승연',intro:false}
 ];
 
+const DEFAULT_HOSTS = {
+  "1": "", "2": "김동언, 박규리", "3": "이재열, 양은솔", "4": "고연희",
+  "5": "문정대, 하연서", "6": "백선우", "7": "박인국",
+  "8": "", "9": "", "10": "", "11": "", "12": ""
+};
+
 function makePerson(name, intro=false) {
   return { name, intro, checked: false };
 }
@@ -433,6 +560,7 @@ async function loadData() {
   if (snap.exists()) {
     data = snap.val();
     if (!data.date) data.date = "6월 14일 일요일";
+    if (!data.hosts) { data.hosts = {...DEFAULT_HOSTS}; saveData(); }
     ['male','female'].forEach(g => {
       if (!data[g]) data[g] = [];
       data[g].forEach(p => { if (typeof p.checked !== 'boolean') p.checked = false; });
@@ -441,16 +569,45 @@ async function loadData() {
     data = {
       date: "6월 14일 일요일",
       male: DEFAULT_MALE.map(p => makePerson(p.name, p.intro)),
-      female: DEFAULT_FEMALE.map(p => makePerson(p.name, p.intro))
+      female: DEFAULT_FEMALE.map(p => makePerson(p.name, p.intro)),
+      hosts: {...DEFAULT_HOSTS}
     };
     await set(ref(db, DB_PATH), data);
   }
   render();
+  renderHosts();
   document.getElementById('loading').style.display = 'none';
-  document.getElementById('mainContent').style.display = 'block';
+  document.getElementById('checkTab').style.display = '';
+  document.getElementById('hostTab').style.display = '';
 }
 
 function saveData() { set(ref(db, DB_PATH), data); }
+
+/* ===== 탭 전환 ===== */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ===== 현재 달 / 주최자 제외 로직 ===== */
+function getCurrentMonth() {
+  const m = (data.date || '').match(/(\d{1,2})\s*월/);
+  return m ? String(parseInt(m[1], 10)) : null;
+}
+
+function getHostNames() {
+  const month = getCurrentMonth();
+  if (!month || !data.hosts || !data.hosts[month]) return [];
+  return data.hosts[month].split(/[,\s]+/).map(s => s.trim()).filter(Boolean);
+}
+
+function isHidden(person, hostNames) {
+  return !person.intro && hostNames.includes(person.name);
+}
 
 /* ===== 날짜 수정 ===== */
 const dateDisplay = document.getElementById('dateDisplay');
@@ -473,7 +630,8 @@ function commitDate() {
   }
   dateInput.style.display = 'none';
   dateDisplay.style.display = 'inline-flex';
-  renderDate();
+  render();
+  renderHosts();
 }
 dateInput.addEventListener('blur', commitDate);
 dateInput.addEventListener('keydown', e => {
@@ -486,9 +644,23 @@ function renderDate() {
   document.title = `${data.date} 팀별교제 식수인원 조사`;
 }
 
+/* ===== 주최자 배너 ===== */
+function renderHostBanner() {
+  const banner = document.getElementById('hostBanner');
+  const month = getCurrentMonth();
+  const names = getHostNames();
+  if (month && names.length) {
+    banner.innerHTML = `📌 <strong>${month}월 주최</strong> : ${names.join(', ')} <span style="color:var(--text-sub)">(명단에서 자동 제외)</span>`;
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
 /* ===== 렌더 ===== */
 function render() {
   renderDate();
+  renderHostBanner();
   renderGroup('male', 'maleBody');
   renderGroup('female', 'femaleBody');
   updateSummary();
@@ -499,7 +671,12 @@ let introOpenState = { male: -1, female: -1 };
 function renderGroup(group, tbodyId) {
   const tbody = document.getElementById(tbodyId);
   tbody.innerHTML = '';
+  const hostNames = getHostNames();
+
   (data[group]||[]).forEach((person, idx) => {
+    // 이번 달 주최자는 명단에서 숨김
+    if (isHidden(person, hostNames)) return;
+
     const tr = document.createElement('tr');
     if (person.intro) tr.classList.add('intro-row');
 
@@ -544,7 +721,7 @@ function renderGroup(group, tbodyId) {
     tr.appendChild(actTd);
     tbody.appendChild(tr);
 
-    // 열매 추가 인풋 행
+    // 초대 추가 인풋 행
     if (!person.intro && introOpenState[group] === idx) {
       const inputTr = document.createElement('tr');
       inputTr.className = 'intro-input-row';
@@ -600,13 +777,53 @@ function toggleCheck(group, idx) {
 }
 
 function updateSummary() {
-  const m = (data.male||[]).filter(p => p.checked).length;
-  const f = (data.female||[]).filter(p => p.checked).length;
+  const hostNames = getHostNames();
+  const visible = g => (data[g]||[]).filter(p => !isHidden(p, hostNames));
+  const m = visible('male').filter(p => p.checked).length;
+  const f = visible('female').filter(p => p.checked).length;
   document.getElementById('sum-male').textContent = m;
   document.getElementById('sum-female').textContent = f;
   document.getElementById('sum-total').textContent = m + f;
-  document.getElementById('badge-male').textContent = `${m} / ${(data.male||[]).length}명`;
-  document.getElementById('badge-female').textContent = `${f} / ${(data.female||[]).length}명`;
+  document.getElementById('badge-male').textContent = `${m} / ${visible('male').length}명`;
+  document.getElementById('badge-female').textContent = `${f} / ${visible('female').length}명`;
+}
+
+/* ===== 주최자 탭 렌더 ===== */
+function renderHosts() {
+  const list = document.getElementById('hostList');
+  list.innerHTML = '';
+  const currentMonth = getCurrentMonth();
+
+  for (let m = 1; m <= 12; m++) {
+    const key = String(m);
+    const row = document.createElement('div');
+    row.className = 'host-row' + (key === currentMonth ? ' current-month' : '');
+
+    const label = document.createElement('div');
+    label.className = 'host-month';
+    label.textContent = `${m}월`;
+
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.className = 'host-input';
+    inp.placeholder = '주최자 이름';
+    inp.maxLength = 40;
+    inp.value = (data.hosts && data.hosts[key]) || '';
+
+    inp.addEventListener('blur', () => {
+      if (!data.hosts) data.hosts = {};
+      data.hosts[key] = inp.value.trim();
+      saveData();
+      render();          // 식수 탭 명단/배너 갱신
+    });
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') inp.blur();
+    });
+
+    row.appendChild(label);
+    row.appendChild(inp);
+    list.appendChild(row);
+  }
 }
 
 window.addPerson = function(group) {
