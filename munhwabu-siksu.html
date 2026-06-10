@@ -525,7 +525,7 @@ function renderGroup(group, tbodyId) {
     if (!person.intro) {
       const introBtn = document.createElement('button');
       introBtn.className = 'intro-add-btn';
-      introBtn.textContent = '↳열매';
+      introBtn.textContent = '↳초대';
       introBtn.onclick = (e) => {
         e.stopPropagation();
         introOpenState[group] = idx;
@@ -556,7 +556,7 @@ function renderGroup(group, tbodyId) {
 
       const inp = document.createElement('input');
       inp.type = 'text';
-      inp.placeholder = `${person.name}의 열매 이름`;
+      inp.placeholder = `${person.name}의 초대 이름`;
       inp.maxLength = 10;
 
       const confirmBtn = document.createElement('button');
