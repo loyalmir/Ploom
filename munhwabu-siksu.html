@@ -218,6 +218,32 @@
     padding-left: 24px;
   }
 
+  /* 이름 수정 */
+  .name-edit-btn {
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.72rem;
+    opacity: 0.4;
+    margin-left: 5px;
+    padding: 2px 3px;
+    vertical-align: middle;
+    transition: opacity 0.15s;
+  }
+  .name-edit-btn:hover { opacity: 1; }
+  .name-edit-input {
+    width: 100px;
+    padding: 4px 7px;
+    border: 1.5px solid var(--accent);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background: white;
+    color: var(--text);
+    outline: none;
+  }
+
   .check-btn {
     width: 38px;
     height: 38px;
@@ -386,9 +412,12 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 9px 14px;
+    padding: 11px 14px;
     border-bottom: 1px solid #ede6d6;
+    cursor: pointer;
+    transition: background 0.15s;
   }
+  .host-row:hover { background: var(--row-hover); }
   .host-row:last-child { border-bottom: none; }
   .host-row.current-month {
     background: var(--accent-light);
@@ -402,21 +431,59 @@
     text-align: center;
   }
   .host-row.current-month .host-month { color: var(--accent); }
-  .host-input {
+  .host-names {
     flex: 1;
-    padding: 7px 10px;
-    border: 1.5px solid transparent;
-    border-radius: 8px;
-    font-family: inherit;
     font-size: 0.85rem;
-    background: transparent;
+    font-weight: 500;
     color: var(--text);
-    outline: none;
-    transition: border-color 0.15s, background 0.15s;
   }
-  .host-input:hover { border-color: var(--border); background: white; }
-  .host-input:focus { border-color: var(--accent); background: white; }
-  .host-input::placeholder { color: #c0b496; }
+  .host-names.empty {
+    color: #c0b496;
+    font-weight: 400;
+  }
+  .host-arrow {
+    font-size: 0.6rem;
+    color: var(--text-sub);
+    flex-shrink: 0;
+  }
+
+  /* 주최자 선택 칩 */
+  .host-picker {
+    padding: 12px 14px 14px;
+    background: #f8f4ec;
+    border-bottom: 1px solid #ede6d6;
+  }
+  .picker-group { margin-bottom: 12px; }
+  .picker-group:last-child { margin-bottom: 0; }
+  .picker-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-sub);
+    margin-bottom: 7px;
+  }
+  .chip-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .name-chip {
+    padding: 7px 13px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: white;
+    font-family: inherit;
+    font-size: 0.78rem;
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+  }
+  .name-chip:active { transform: scale(0.94); }
+  .name-chip.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    font-weight: 600;
+  }
 
   #loading {
     text-align: center;
@@ -508,8 +575,8 @@
 
   <div class="hosts-title">팀별교제 주최 형제자매</div>
   <div class="hosts-sub">
-    이름을 적으면 해당 달의 식수 명단에서 자동으로 제외됩니다.<br>
-    여러 명은 쉼표나 띄어쓰기로 구분해 주세요.
+    달을 탭하면 명단이 열려요. 이름을 탭해서 주최자를 선택하세요.<br>
+    선택된 주최자는 해당 달의 식수 명단에서 자동으로 제외됩니다.
   </div>
 
   <div class="table-section">
@@ -667,6 +734,7 @@ function render() {
 }
 
 let introOpenState = { male: -1, female: -1 };
+let nameEditState = { group: null, idx: -1 };
 
 function renderGroup(group, tbodyId) {
   const tbody = document.getElementById(tbodyId);
@@ -682,7 +750,59 @@ function renderGroup(group, tbodyId) {
 
     const nameTd = document.createElement('td');
     nameTd.className = 'name-cell';
-    nameTd.textContent = person.intro ? `↳ ${person.name}` : person.name;
+
+    if (nameEditState.group === group && nameEditState.idx === idx) {
+      // 이름 수정 모드
+      const editInp = document.createElement('input');
+      editInp.type = 'text';
+      editInp.className = 'name-edit-input';
+      editInp.value = person.name;
+      editInp.maxLength = 10;
+
+      let committed = false;
+      const commit = () => {
+        if (committed) return;
+        committed = true;
+        const v = editInp.value.trim();
+        if (v) {
+          data[group][idx].name = v;
+          saveData();
+        }
+        nameEditState = { group: null, idx: -1 };
+        render();
+      };
+      const cancel = () => {
+        committed = true;
+        nameEditState = { group: null, idx: -1 };
+        render();
+      };
+
+      editInp.addEventListener('keydown', e => {
+        if (e.key === 'Enter') commit();
+        if (e.key === 'Escape') cancel();
+      });
+      editInp.addEventListener('blur', commit);
+
+      nameTd.appendChild(editInp);
+      setTimeout(() => { editInp.focus(); editInp.select(); }, 50);
+    } else {
+      // 일반 표시 + 수정 아이콘
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = person.intro ? `↳ ${person.name}` : person.name;
+      nameTd.appendChild(nameSpan);
+
+      const editBtn = document.createElement('button');
+      editBtn.className = 'name-edit-btn';
+      editBtn.textContent = '✏️';
+      editBtn.title = '이름 수정';
+      editBtn.onclick = (e) => {
+        e.stopPropagation();
+        nameEditState = { group, idx };
+        render();
+      };
+      nameTd.appendChild(editBtn);
+    }
+
     tr.appendChild(nameTd);
 
     // 식수 체크 (단일)
@@ -788,7 +908,13 @@ function updateSummary() {
   document.getElementById('badge-female').textContent = `${f} / ${visible('female').length}명`;
 }
 
-/* ===== 주최자 탭 렌더 ===== */
+/* ===== 주최자 탭 렌더 (탭해서 선택) ===== */
+let hostOpenMonth = null;
+
+function parseHostStr(str) {
+  return (str || '').split(/[,\s]+/).map(s => s.trim()).filter(Boolean);
+}
+
 function renderHosts() {
   const list = document.getElementById('hostList');
   list.innerHTML = '';
@@ -796,6 +922,9 @@ function renderHosts() {
 
   for (let m = 1; m <= 12; m++) {
     const key = String(m);
+    const selected = parseHostStr(data.hosts && data.hosts[key]);
+    const isOpen = hostOpenMonth === key;
+
     const row = document.createElement('div');
     row.className = 'host-row' + (key === currentMonth ? ' current-month' : '');
 
@@ -803,27 +932,69 @@ function renderHosts() {
     label.className = 'host-month';
     label.textContent = `${m}월`;
 
-    const inp = document.createElement('input');
-    inp.type = 'text';
-    inp.className = 'host-input';
-    inp.placeholder = '주최자 이름';
-    inp.maxLength = 40;
-    inp.value = (data.hosts && data.hosts[key]) || '';
+    const namesDiv = document.createElement('div');
+    namesDiv.className = 'host-names' + (selected.length ? '' : ' empty');
+    namesDiv.textContent = selected.length ? selected.join(', ') : '탭해서 선택';
 
-    inp.addEventListener('blur', () => {
-      if (!data.hosts) data.hosts = {};
-      data.hosts[key] = inp.value.trim();
-      saveData();
-      render();          // 식수 탭 명단/배너 갱신
-    });
-    inp.addEventListener('keydown', e => {
-      if (e.key === 'Enter') inp.blur();
-    });
+    const arrow = document.createElement('div');
+    arrow.className = 'host-arrow';
+    arrow.textContent = isOpen ? '▲' : '▼';
 
     row.appendChild(label);
-    row.appendChild(inp);
+    row.appendChild(namesDiv);
+    row.appendChild(arrow);
+    row.onclick = () => {
+      hostOpenMonth = isOpen ? null : key;
+      renderHosts();
+    };
     list.appendChild(row);
+
+    // 펼쳐진 달 → 명단 칩 선택 영역
+    if (isOpen) {
+      const picker = document.createElement('div');
+      picker.className = 'host-picker';
+
+      [['male','👨 형제'], ['female','👩 자매']].forEach(([g, glabel]) => {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'picker-group';
+
+        const gl = document.createElement('div');
+        gl.className = 'picker-label';
+        gl.textContent = glabel;
+        groupDiv.appendChild(gl);
+
+        const chipWrap = document.createElement('div');
+        chipWrap.className = 'chip-wrap';
+
+        (data[g]||[]).filter(p => !p.intro).forEach(p => {
+          const chip = document.createElement('button');
+          chip.className = 'name-chip' + (selected.includes(p.name) ? ' selected' : '');
+          chip.textContent = p.name;
+          chip.onclick = (e) => {
+            e.stopPropagation();
+            toggleHost(key, p.name);
+          };
+          chipWrap.appendChild(chip);
+        });
+
+        groupDiv.appendChild(chipWrap);
+        picker.appendChild(groupDiv);
+      });
+
+      list.appendChild(picker);
+    }
   }
+}
+
+function toggleHost(key, name) {
+  if (!data.hosts) data.hosts = {};
+  let arr = parseHostStr(data.hosts[key]);
+  if (arr.includes(name)) arr = arr.filter(n => n !== name);
+  else arr.push(name);
+  data.hosts[key] = arr.join(', ');
+  saveData();
+  renderHosts();
+  render();   // 식수 탭 명단/배너/합계 갱신
 }
 
 window.addPerson = function(group) {
