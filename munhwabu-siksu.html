@@ -506,7 +506,7 @@
 <!-- ===== 탭 2 : 주최자 ===== -->
 <div id="hostTab" class="tab-page" style="display:none">
 
-  <div class="hosts-title">2026년 팀별교제 주최 형제자매</div>
+  <div class="hosts-title">팀별교제 주최 형제자매</div>
   <div class="hosts-sub">
     이름을 적으면 해당 달의 식수 명단에서 자동으로 제외됩니다.<br>
     여러 명은 쉼표나 띄어쓰기로 구분해 주세요.
@@ -650,7 +650,7 @@ function renderHostBanner() {
   const month = getCurrentMonth();
   const names = getHostNames();
   if (month && names.length) {
-    banner.innerHTML = `📌 <strong>${month}월 주최</strong> : ${names.join(', ')} <span style="color:var(--text-sub)">(명단에서 자동 제외)</span>`;
+    banner.innerHTML = `📌 <strong>${month}월 주최</strong> : ${names.join(', ')}`;
     banner.style.display = 'block';
   } else {
     banner.style.display = 'none';
