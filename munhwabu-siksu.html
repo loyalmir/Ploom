@@ -130,19 +130,17 @@
 
   /* ===== 요약 ===== */
   .summary-bar {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 7px;
     margin-bottom: 20px;
   }
   .summary-card {
     background: var(--surface);
     border: 1.5px solid var(--border);
     border-radius: 10px;
-    padding: 8px 20px;
+    padding: 9px 4px;
     text-align: center;
-    min-width: 84px;
   }
   .summary-card.total { border-color: var(--accent); }
   .summary-card .day-label { font-size: 0.7rem; color: var(--text-sub); margin-bottom: 2px; }
@@ -801,6 +799,11 @@
 
   <div class="host-banner" id="hostBanner"></div>
 
+  <div class="notice-view" id="checkNotice">
+    <div class="notice-head">📢 안내사항</div>
+    <div class="notice-body" id="checkNoticeBody"></div>
+  </div>
+
   <div class="summary-bar">
     <div class="summary-card male-card"><div class="day-label">형제</div><div class="day-count" id="sum-male">-</div></div>
     <div class="summary-card female-card"><div class="day-label">자매</div><div class="day-count" id="sum-female">-</div></div>
@@ -846,11 +849,6 @@
 
   <div class="reset-wrap">
     <button class="reset-btn" onclick="resetChecks()">✓ 체크 전체 초기화</button>
-  </div>
-
-  <div class="notice-view" id="checkNotice" style="margin-top:18px">
-    <div class="notice-head">📢 안내사항</div>
-    <div class="notice-body" id="checkNoticeBody"></div>
   </div>
 
 </div>
@@ -907,11 +905,6 @@
   <div class="table-section">
     <div class="section-header hosts"><span>📌 월별 주최자</span></div>
     <div id="hostList"></div>
-  </div>
-
-  <div class="notice-view" id="hostNotice">
-    <div class="notice-head">📢 안내사항</div>
-    <div class="notice-body" id="hostNoticeBody"></div>
   </div>
 
 </div>
@@ -1525,10 +1518,9 @@ function renderNotice() {
   const edit = document.getElementById('noticeEdit');
   if (edit && document.activeElement !== edit) edit.value = text;
 
-  // 식수/주최자 탭: 읽기 전용
-  ['checkNoticeBody', 'hostNoticeBody'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
+  // 식수 탭: 읽기 전용
+  const el = document.getElementById('checkNoticeBody');
+  if (el) {
     if (text.trim()) {
       el.textContent = text;
       el.classList.remove('empty');
@@ -1536,7 +1528,7 @@ function renderNotice() {
       el.textContent = '아직 안내사항이 없어요. 주문표 탭에서 작성할 수 있어요.';
       el.classList.add('empty');
     }
-  });
+  }
 }
 
 function renderFieldsEditor() {
