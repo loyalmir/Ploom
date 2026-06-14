@@ -192,7 +192,7 @@
   }
   thead th.name-col { text-align: left; padding-left: 14px; }
   thead th.check-col { width: 80px; }
-  thead th.act-col { width: 100px; }
+  thead th.act-col { width: 120px; }
 
   tbody tr {
     border-bottom: 1px solid #ede6d6;
@@ -269,7 +269,8 @@
   .action-cell {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
     gap: 4px;
     padding-right: 4px;
   }
@@ -307,6 +308,20 @@
     border-color: var(--accent);
     color: var(--accent);
   }
+  .order-toggle-btn {
+    font-size: 0.68rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1.5px solid var(--accent);
+    background: var(--surface);
+    color: var(--accent);
+    cursor: pointer;
+    white-space: nowrap;
+    font-weight: 600;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .order-toggle-btn.open { background: var(--accent); color: white; }
 
   /* 초대 추가 인풋 */
   .intro-input-row td {
@@ -1195,6 +1210,7 @@ function render() {
 
 let introOpenState = { male: -1, female: -1 };
 let nameEditState = { group: null, idx: -1 };
+let orderOpenState = {};  // key: "group:idx" → true면 펼침 (기본 닫힘)
 
 function renderGroup(group, tbodyId) {
   const tbody = document.getElementById(tbodyId);
@@ -1279,6 +1295,22 @@ function renderGroup(group, tbodyId) {
     const actDiv = document.createElement('div');
     actDiv.className = 'action-cell';
 
+    // 주문 펼치기/접기 토글 (체크된 사람만)
+    if (person.checked) {
+      const okey = `${group}:${idx}`;
+      const isOpen = !!orderOpenState[okey];
+      const ordBtn = document.createElement('button');
+      ordBtn.className = 'order-toggle-btn' + (isOpen ? ' open' : '');
+      ordBtn.textContent = isOpen ? '주문 ▴' : '주문 ▾';
+      ordBtn.title = '주문 입력 펼치기';
+      ordBtn.onclick = (e) => {
+        e.stopPropagation();
+        orderOpenState[okey] = !isOpen;
+        render();
+      };
+      actDiv.appendChild(ordBtn);
+    }
+
     if (!person.intro) {
       const introBtn = document.createElement('button');
       introBtn.className = 'intro-add-btn';
@@ -1302,8 +1334,8 @@ function renderGroup(group, tbodyId) {
     tr.appendChild(actTd);
     tbody.appendChild(tr);
 
-    // 체크된 사람 → 주문 입력 행 (선택지 칩 탭)
-    if (person.checked) {
+    // 체크된 사람 → 주문 입력 행 (펼쳐졌을 때만 표시)
+    if (person.checked && orderOpenState[`${group}:${idx}`]) {
       const fields = getFields();
       const orderTr = document.createElement('tr');
       orderTr.className = 'order-entry-row';
@@ -1431,6 +1463,8 @@ function renderGroup(group, tbodyId) {
 
 function toggleCheck(group, idx) {
   data[group][idx].checked = !data[group][idx].checked;
+  // 체크 해제 시 주문 펼침 상태도 닫기
+  if (!data[group][idx].checked) delete orderOpenState[`${group}:${idx}`];
   saveData();
   render();
   renderOrderTab();
