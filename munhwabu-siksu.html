@@ -533,6 +533,18 @@
     color: var(--text-sub);
     padding: 2px 0;
   }
+  .order-text-input {
+    padding: 7px 11px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    background: white;
+    color: var(--text);
+    outline: none;
+    max-width: 240px;
+  }
+  .order-text-input:focus { border-color: var(--accent); }
 
   /* ===== 주문표 탭 ===== */
   .fields-editor {
@@ -550,6 +562,36 @@
     align-items: center;
     gap: 6px;
     margin-bottom: 9px;
+  }
+  .field-type-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 9px;
+  }
+  .type-toggle {
+    flex: 1;
+    padding: 6px 0;
+    border-radius: 7px;
+    border: 1.5px solid var(--border);
+    background: white;
+    font-family: inherit;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--text-sub);
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+  .type-toggle.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .field-text-note {
+    font-size: 0.74rem;
+    color: var(--text-sub);
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 8px 11px;
   }
   .field-name-input {
     flex: 1;
@@ -614,6 +656,7 @@
   }
   .field-add-row input {
     flex: 1;
+    min-width: 0;
     padding: 7px 10px;
     border: 1.5px dashed var(--border);
     border-radius: 8px;
@@ -625,7 +668,8 @@
   }
   .field-add-row input:focus { border-color: var(--accent); }
   .field-add-row button {
-    padding: 7px 14px;
+    flex-shrink: 0;
+    padding: 7px 12px;
     background: var(--accent);
     color: white;
     border: none;
@@ -940,20 +984,26 @@ const DEFAULT_HOSTS = {
   "7": "", "8": "", "9": "", "10": "", "11": "", "12": ""
 };
 
-// 달별 주문 항목(열) 정의. 각 항목은 {name, options[]} 구조.
+// 달별 주문 항목(열) 정의. 각 항목은 {name, type, options[]} 구조.
+// type: 'choice'(선택지 탭) | 'text'(개인 직접입력)
 const DEFAULT_FIELDS = [
-  { name: "음료", options: ["아아", "뜨아", "아이스티", "메밀차", "보리차", "둥글레차", "캐모마일꿀차", "루이보스"] },
-  { name: "음식", options: [] }
+  { name: "음료", type: "choice", options: ["아아", "뜨아", "아이스티", "메밀차", "보리차", "둥글레차", "캐모마일꿀차", "루이보스"] },
+  { name: "음식", type: "choice", options: [] },
+  { name: "차번호", type: "text", options: [] }
 ];
 
 function makePerson(name, intro=false) {
   return { name, intro, checked: false, order: {} };
 }
 
-// 문자열/구버전 항목을 {name, options} 구조로 정규화
+// 문자열/구버전 항목을 {name, type, options} 구조로 정규화
 function normalizeField(f) {
-  if (typeof f === 'string') return { name: f, options: [] };
-  return { name: f.name || '', options: Array.isArray(f.options) ? f.options : [] };
+  if (typeof f === 'string') return { name: f, type: 'choice', options: [] };
+  return {
+    name: f.name || '',
+    type: f.type === 'text' ? 'text' : 'choice',
+    options: Array.isArray(f.options) ? f.options : []
+  };
 }
 
 // 달별 항목 가져오기 (없으면 기본값)
@@ -962,7 +1012,7 @@ function getFields() {
   if (data.orderFields && data.orderFields[month] && data.orderFields[month].length) {
     return data.orderFields[month].map(normalizeField);
   }
-  return DEFAULT_FIELDS.map(f => ({ name: f.name, options: [...f.options] }));
+  return DEFAULT_FIELDS.map(f => ({ name: f.name, type: f.type, options: [...f.options] }));
 }
 
 // 달별 안내사항
@@ -998,15 +1048,22 @@ async function loadData() {
     });
     if (!data.orderFields) data.orderFields = {};
     if (!data.notices) data.notices = {};
-    // orderFields 구조 마이그레이션 (문자열→객체, 차번호 제거) 1회
-    if (!data.orderFieldsV2) {
+    // orderFields 구조 마이그레이션 (문자열→객체, type 부여) 1회
+    if (!data.orderFieldsV3) {
       Object.keys(data.orderFields).forEach(mk => {
-        const arr = (data.orderFields[mk] || [])
-          .map(f => (typeof f === 'string' ? { name: f, options: [] } : { name: f.name||'', options: Array.isArray(f.options)?f.options:[] }))
-          .filter(f => f.name && f.name !== '차번호');
+        const arr = (data.orderFields[mk] || []).map(f => {
+          if (typeof f === 'string') {
+            return { name: f, type: (f === '차번호' || f === '차량번호') ? 'text' : 'choice', options: [] };
+          }
+          return {
+            name: f.name || '',
+            type: f.type === 'text' ? 'text' : ((f.name === '차번호' || f.name === '차량번호') ? 'text' : 'choice'),
+            options: Array.isArray(f.options) ? f.options : []
+          };
+        }).filter(f => f.name);
         data.orderFields[mk] = arr;
       });
-      data.orderFieldsV2 = true;
+      data.orderFieldsV3 = true;
       saveData();
     }
   } else {
@@ -1017,7 +1074,7 @@ async function loadData() {
       hosts: {...DEFAULT_HOSTS},
       hostsCleared: true,
       orderFields: {},
-      orderFieldsV2: true,
+      orderFieldsV3: true,
       notices: {}
     };
     await set(ref(db, DB_PATH), data);
@@ -1252,33 +1309,49 @@ function renderGroup(group, tbodyId) {
           flabel.textContent = field.name;
           fieldDiv.appendChild(flabel);
 
-          const chipBox = document.createElement('div');
-          chipBox.className = 'order-chip-box';
-
-          if (!field.options.length) {
-            const hint = document.createElement('span');
-            hint.className = 'order-empty-hint';
-            hint.textContent = '주문표 탭에서 선택지를 추가해 주세요';
-            chipBox.appendChild(hint);
+          if (field.type === 'text') {
+            // 개인 직접 입력 (예: 차번호)
+            const finput = document.createElement('input');
+            finput.type = 'text';
+            finput.className = 'order-text-input';
+            finput.value = (person.order && person.order[field.name]) || '';
+            finput.placeholder = `${field.name} 입력`;
+            finput.maxLength = 30;
+            finput.oninput = () => {
+              if (!data[group][idx].order) data[group][idx].order = {};
+              data[group][idx].order[field.name] = finput.value;
+            };
+            finput.onblur = () => { saveData(); renderOrderTab(); };
+            fieldDiv.appendChild(finput);
           } else {
-            const cur = (person.order && person.order[field.name]) || '';
-            field.options.forEach(opt => {
-              const chip = document.createElement('button');
-              chip.className = 'order-chip' + (cur === opt ? ' selected' : '');
-              chip.textContent = opt;
-              chip.onclick = () => {
-                if (!data[group][idx].order) data[group][idx].order = {};
-                // 같은 걸 다시 누르면 선택 해제
-                data[group][idx].order[field.name] = (cur === opt) ? '' : opt;
-                saveData();
-                render();
-                renderOrderTab();
-              };
-              chipBox.appendChild(chip);
-            });
+            // 선택지 칩
+            const chipBox = document.createElement('div');
+            chipBox.className = 'order-chip-box';
+
+            if (!field.options.length) {
+              const hint = document.createElement('span');
+              hint.className = 'order-empty-hint';
+              hint.textContent = '주문표 탭에서 선택지를 추가해 주세요';
+              chipBox.appendChild(hint);
+            } else {
+              const cur = (person.order && person.order[field.name]) || '';
+              field.options.forEach(opt => {
+                const chip = document.createElement('button');
+                chip.className = 'order-chip' + (cur === opt ? ' selected' : '');
+                chip.textContent = opt;
+                chip.onclick = () => {
+                  if (!data[group][idx].order) data[group][idx].order = {};
+                  data[group][idx].order[field.name] = (cur === opt) ? '' : opt;
+                  saveData();
+                  render();
+                  renderOrderTab();
+                };
+                chipBox.appendChild(chip);
+              });
+            }
+            fieldDiv.appendChild(chipBox);
           }
 
-          fieldDiv.appendChild(chipBox);
           wrap.appendChild(fieldDiv);
         });
       }
@@ -1576,7 +1649,35 @@ function renderFieldsEditor() {
     head.appendChild(delField);
     block.appendChild(head);
 
-    // 선택지 칩들
+    // 입력 방식 토글 (선택지 / 직접입력)
+    const typeRow = document.createElement('div');
+    typeRow.className = 'field-type-row';
+    [['choice','목록에서 선택'], ['text','개인 직접입력']].forEach(([val, lbl]) => {
+      const tb = document.createElement('button');
+      tb.className = 'type-toggle' + (field.type === val ? ' active' : '');
+      tb.textContent = lbl;
+      tb.onclick = () => {
+        const arr = getFields();
+        arr[fi].type = val;
+        setFields(arr);
+        renderOrderTab();
+        render();
+      };
+      typeRow.appendChild(tb);
+    });
+    block.appendChild(typeRow);
+
+    if (field.type === 'text') {
+      // 직접입력 항목: 선택지 없음 안내
+      const note = document.createElement('div');
+      note.className = 'field-text-note';
+      note.textContent = '✏️ 식수 체크할 때 개인이 직접 입력합니다.';
+      block.appendChild(note);
+      editor.appendChild(block);
+      return;
+    }
+
+    // 선택지 칩들 (choice 타입만)
     const optWrap = document.createElement('div');
     optWrap.className = 'field-opt-wrap';
 
@@ -1600,7 +1701,7 @@ function renderFieldsEditor() {
       optWrap.appendChild(chip);
     });
 
-    // 선택지 추가 인풋
+    // 선택지 추가 인풋 (추가해도 칸 유지 → 연속 추가)
     const addOptInp = document.createElement('input');
     addOptInp.className = 'opt-add-input';
     addOptInp.type = 'text';
@@ -1640,7 +1741,7 @@ function renderFieldsEditor() {
     const v = addInp.value.trim();
     if (!v) return;
     const arr = getFields();
-    arr.push({ name: v, options: [] });
+    arr.push({ name: v, type: 'choice', options: [] });
     setFields(arr);
     addInp.value = '';
     renderOrderTab();
