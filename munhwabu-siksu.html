@@ -637,18 +637,37 @@
     justify-content: center;
     line-height: 1;
   }
+  .opt-add-box {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+    margin-top: 2px;
+  }
   .opt-add-input {
-    width: 110px;
-    padding: 6px 10px;
+    flex: 1;
+    min-width: 0;
+    padding: 8px 11px;
     border: 1.5px dashed var(--border);
     border-radius: 16px;
     font-family: inherit;
-    font-size: 0.76rem;
+    font-size: 0.8rem;
     background: var(--bg);
     color: var(--text);
     outline: none;
   }
   .opt-add-input:focus { border-color: var(--accent); }
+  .opt-add-btn {
+    flex-shrink: 0;
+    width: 42px;
+    border-radius: 16px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .opt-add-btn:active { background: #a85f25; }
   .field-add-row {
     display: flex;
     gap: 8px;
@@ -1701,18 +1720,30 @@ function renderFieldsEditor() {
       optWrap.appendChild(chip);
     });
 
-    // 선택지 추가 인풋 (추가해도 칸 유지 → 연속 추가)
+    // 선택지 추가: 입력칸 + ＋버튼 (쉼표로 여러개 한번에)
+    const addBox = document.createElement('div');
+    addBox.className = 'opt-add-box';
+
     const addOptInp = document.createElement('input');
     addOptInp.className = 'opt-add-input';
     addOptInp.type = 'text';
-    addOptInp.placeholder = '＋ 선택지';
-    addOptInp.maxLength = 20;
+    addOptInp.placeholder = '선택지 입력 (쉼표로 여러개)';
+    addOptInp.maxLength = 60;
     addOptInp.dataset.fi = fi;
+    addOptInp.enterKeyHint = 'done';
+    addOptInp.autocapitalize = 'off';
+    addOptInp.autocomplete = 'off';
+
+    const addOptBtn = document.createElement('button');
+    addOptBtn.className = 'opt-add-btn';
+    addOptBtn.textContent = '＋';
+
     const addOpt = () => {
-      const v = addOptInp.value.trim();
-      if (!v) return;
+      const raw = addOptInp.value.trim();
+      if (!raw) return;
+      const parts = raw.split(/[,，]/).map(s => s.trim()).filter(Boolean);
       const arr = getFields();
-      if (!arr[fi].options.includes(v)) arr[fi].options.push(v);
+      parts.forEach(v => { if (!arr[fi].options.includes(v)) arr[fi].options.push(v); });
       setFields(arr);
       renderOrderTab();
       render();
@@ -1721,8 +1752,12 @@ function renderFieldsEditor() {
         inps.forEach(el => { if (el.dataset.fi == fi) el.focus(); });
       }, 60);
     };
-    addOptInp.onkeydown = (e) => { if (e.key === 'Enter') addOpt(); };
-    optWrap.appendChild(addOptInp);
+    addOptBtn.onclick = addOpt;
+    addOptInp.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addOpt(); } };
+
+    addBox.appendChild(addOptInp);
+    addBox.appendChild(addOptBtn);
+    optWrap.appendChild(addBox);
 
     block.appendChild(optWrap);
     editor.appendChild(block);
