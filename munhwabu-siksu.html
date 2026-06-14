@@ -660,6 +660,59 @@
   }
   .copy-order-btn:hover { background: var(--accent-light); }
 
+  /* ===== 안내사항 ===== */
+  .notice-box {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .notice-edit {
+    width: 100%;
+    min-height: 120px;
+    padding: 14px;
+    border: none;
+    font-family: inherit;
+    font-size: 0.85rem;
+    line-height: 1.65;
+    color: var(--text);
+    background: transparent;
+    resize: vertical;
+    outline: none;
+  }
+  .notice-edit:focus { background: #fffdf5; }
+  .notice-edit::placeholder { color: #c0b496; }
+  /* 읽기 전용 표시 (식수/주최자 탭) */
+  .notice-view {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .notice-view .notice-head {
+    padding: 9px 14px;
+    background: var(--accent-light);
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-sub);
+  }
+  .notice-view .notice-body {
+    padding: 13px 15px;
+    font-size: 0.84rem;
+    line-height: 1.65;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .notice-view .notice-body.empty {
+    color: #c0b496;
+    font-style: italic;
+  }
+
   #loading {
     text-align: center;
     padding: 40px;
@@ -745,6 +798,11 @@
     <button class="reset-btn" onclick="resetChecks()">✓ 체크 전체 초기화</button>
   </div>
 
+  <div class="notice-view" id="checkNotice" style="margin-top:18px">
+    <div class="notice-head">📢 안내사항</div>
+    <div class="notice-body" id="checkNoticeBody"></div>
+  </div>
+
 </div>
 
 <!-- ===== 탭 2 : 주문표 ===== -->
@@ -777,6 +835,14 @@
     <div class="order-tally" id="orderTally"></div>
   </div>
 
+  <!-- 안내사항 편집 -->
+  <div class="table-section">
+    <div class="section-header hosts"><span>📢 안내사항</span><span class="count-badge" id="noticeMonthBadge">-</span></div>
+    <div class="notice-box">
+      <textarea class="notice-edit" id="noticeEdit" placeholder="단톡방에 올릴 안내사항을 적어주세요.&#10;예) 주차는 K스퀘어 마곡 지하3층, 마곡타워1로 오세요 🙏&#10;음료/음식/차번호 남겨주세요!"></textarea>
+    </div>
+  </div>
+
 </div>
 
 <!-- ===== 탭 3 : 주최자 ===== -->
@@ -791,6 +857,11 @@
   <div class="table-section">
     <div class="section-header hosts"><span>📌 월별 주최자</span></div>
     <div id="hostList"></div>
+  </div>
+
+  <div class="notice-view" id="hostNotice">
+    <div class="notice-head">📢 안내사항</div>
+    <div class="notice-body" id="hostNoticeBody"></div>
   </div>
 
 </div>
@@ -842,6 +913,18 @@ function getFields() {
   return [...DEFAULT_FIELDS];
 }
 
+// 달별 안내사항
+function getNotice() {
+  const month = getCurrentMonth();
+  return (data.notices && data.notices[month]) || '';
+}
+function setNotice(text) {
+  const month = getCurrentMonth();
+  if (!data.notices) data.notices = {};
+  data.notices[month] = text;
+  saveData();
+}
+
 async function loadData() {
   const snap = await get(ref(db, DB_PATH));
   if (snap.exists()) {
@@ -862,6 +945,7 @@ async function loadData() {
       });
     });
     if (!data.orderFields) data.orderFields = {};
+    if (!data.notices) data.notices = {};
   } else {
     data = {
       date: "6월 14일 일요일",
@@ -869,7 +953,8 @@ async function loadData() {
       female: DEFAULT_FEMALE.map(p => makePerson(p.name, p.intro)),
       hosts: {...DEFAULT_HOSTS},
       hostsCleared: true,
-      orderFields: {}
+      orderFields: {},
+      notices: {}
     };
     await set(ref(db, DB_PATH), data);
   }
@@ -1338,10 +1423,33 @@ function renderOrderTab() {
   document.getElementById('orderTitle').textContent =
     (month ? `${month}월 ` : '') + '주문표';
   document.getElementById('orderMonthBadge').textContent = month ? `${month}월` : '-';
+  document.getElementById('noticeMonthBadge').textContent = month ? `${month}월` : '-';
 
   renderFieldsEditor();
   renderOrderTable();
   renderOrderTally();
+  renderNotice();
+}
+
+function renderNotice() {
+  const text = getNotice();
+
+  // 주문표 탭: 편집용 textarea (포커스 중이 아닐 때만 값 갱신)
+  const edit = document.getElementById('noticeEdit');
+  if (edit && document.activeElement !== edit) edit.value = text;
+
+  // 식수/주최자 탭: 읽기 전용
+  ['checkNoticeBody', 'hostNoticeBody'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (text.trim()) {
+      el.textContent = text;
+      el.classList.remove('empty');
+    } else {
+      el.textContent = '아직 안내사항이 없어요. 주문표 탭에서 작성할 수 있어요.';
+      el.classList.add('empty');
+    }
+  });
 }
 
 function renderFieldsEditor() {
@@ -1576,6 +1684,11 @@ window.resetChecks = function() {
 
 document.getElementById('maleInput').addEventListener('keydown', e => { if(e.key==='Enter') window.addPerson('male'); });
 document.getElementById('femaleInput').addEventListener('keydown', e => { if(e.key==='Enter') window.addPerson('female'); });
+
+// 안내사항: 입력 중엔 저장만, 포커스 나가면 읽기전용 뷰 갱신
+const noticeEdit = document.getElementById('noticeEdit');
+noticeEdit.addEventListener('input', () => { setNotice(noticeEdit.value); });
+noticeEdit.addEventListener('blur', () => { renderNotice(); });
 
 loadData();
 </script>
